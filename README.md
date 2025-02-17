@@ -26,7 +26,7 @@ Ensure you have the following installed on your system:
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/Azickri/wapi-starter.git
+   git clone https://github.com/azickri/wapi-starter.git
    cd wapi-starter
    ```
 2. Install dependencies:
