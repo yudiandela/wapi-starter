@@ -106,7 +106,6 @@ export class BaileysService {
   }
 
   async disconnect(id: string) {
-    console.log('masuk ke sini');
     const session = sessions.find((session) => session.id == id);
     if (!session) return;
 
