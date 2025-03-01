@@ -28,7 +28,7 @@ export class BaileysService {
     folders.forEach((id) => void this.connect(id));
   }
 
-  async connect(id: string) {
+  async connect(id: string, force = false) {
     const path = {
       session: `sessions/${id}`,
       store: `stores/${id}.json`,
@@ -36,6 +36,10 @@ export class BaileysService {
 
     const session = sessions.find((item) => item.id == id);
     if (session && !session.isConnected) return;
+
+    if (force && fs.existsSync(path.session)) {
+      fs.rmSync(path.session, { recursive: true, force: true });
+    }
 
     const auth = await useMultiFileAuthState(path.session);
     const socket = Socket({
@@ -84,8 +88,8 @@ export class BaileysService {
         clearInterval(interval);
         sessions = sessions.filter((session) => session.id != id);
 
-        if (shouldReconnect && !attempQr.isNeedStop) {
-          await this.connect(id);
+        if (!attempQr.isNeedStop) {
+          await this.connect(id, !shouldReconnect);
         }
       } else if (connection == 'open') {
         const index = sessions.findIndex((session) => session.id == id);
