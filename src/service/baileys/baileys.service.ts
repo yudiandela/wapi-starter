@@ -15,11 +15,14 @@ import Socket, {
 import { StringHelper } from 'src/helper/string.helper';
 import { ParamSendMessage, ParamSendStatus } from '../main/main.type';
 import { BaileysHelper } from 'src/helper/baileys.helper';
+import { MapService } from '../map/map.service';
 
 let sessions: Session[] = [];
 
 @Injectable()
 export class BaileysService {
+  constructor(private mapService: MapService) {}
+
   init() {
     const folders = fs.readdirSync('sessions');
     folders.forEach((id) => void this.connect(id));
@@ -95,8 +98,31 @@ export class BaileysService {
     });
 
     socket.ev.on('messages.upsert', (value) => {
-      console.log('event messages.upsert', value);
-      // Handle incoming message here...
+      value.messages.forEach(async (waMessage) => {
+        if (waMessage.keepInChat) return;
+        if (waMessage.pinInChat) return;
+        if (waMessage.pollUpdates) return;
+        if (waMessage.key.remoteJid?.match('broadcast')) return;
+        if (!waMessage.message) return;
+
+        const session = sessions.find((item) => item.id == id);
+        if (!session) return;
+
+        const [chat, message] = await Promise.all([
+          this.mapService.generateChat(session, waMessage),
+          this.mapService.generateMessage(session, waMessage),
+        ]);
+
+        console.log(
+          'MAPPED messages.upsert',
+          JSON.stringify({ chat, message }),
+        );
+
+        /*
+          Save Chat and Message to your own Database
+          Recommendation: Save to NoSQL Database
+        */
+      });
     });
 
     socket.ev.on('messages.update', (value) => {

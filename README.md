@@ -12,6 +12,23 @@ Welcome to **WAPI Starter**, a WhatsApp API template designed to simplify the in
 - **QR Code Authentication**: Scan QR codes to establish secure connections with WhatsApp.
 - **Messaging & Events**: Send and receive messages, listen to events, and handle webhooks.
 - **RESTful API**: Exposes endpoints for easy interaction with the WhatsApp API.
+- **Mapped Message**:
+
+  | Type                             | Status |
+  | -------------------------------- | ------ |
+  | Text                             | ✅     |
+  | Image                            | ✅     |
+  | Sticker                          | ✅     |
+  | Video                            | ✅     |
+  | Audio                            | ✅     |
+  | Document                         | ✅     |
+  | Location                         | ✅     |
+  | Contact                          | ✅     |
+  | Live Location                    | ❌     |
+  | Polling                          | ❌     |
+  | Event                            | ❌     |
+  | Product                          | ❌     |
+  | And Others Not Yet Discovered... | ⭕     |
 
 ## Installation
 
@@ -26,8 +43,8 @@ Ensure you have the following installed on your system:
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/azickri/wapi-starter.git
-   cd wapi-starter
+   git clone https://github.com/Azickri/wa-api.git
+   cd wa-api
    ```
 2. Install dependencies:
    ```sh
@@ -76,6 +93,10 @@ Visit [`/documentation`](http://localhost:3000/documentation) to view the full A
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests to improve this project.
+
+## Support the Project
+
+If you find this project useful and would like to support further development, you can consider making a small contribution via **Saweria**: [Saweria](https://saweria.co/azickri). Every bit of support is greatly appreciated!
 
 ## License
 

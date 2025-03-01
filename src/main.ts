@@ -19,6 +19,10 @@ async function bootstrap() {
     fs.mkdirSync('stores');
   }
 
+  if (!fs.existsSync('media')) {
+    fs.mkdirSync('media');
+  }
+
   app.get(BaileysService).init();
 
   if (process.env.INIT_SWAGGER == 'true') {
