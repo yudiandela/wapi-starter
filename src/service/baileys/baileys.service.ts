@@ -17,12 +17,16 @@ import { ParamSendMessage, ParamSendStatus } from '../main/main.type';
 import { BaileysHelper } from 'src/helper/baileys.helper';
 import { MapService } from '../map/map.service';
 import { TypingService } from '../message/typing.service';
+import { RedisService } from '../redis/redis.service';
 
 let sessions: Session[] = [];
 
 @Injectable()
 export class BaileysService {
-  constructor(private mapService: MapService) {}
+  constructor(
+    private mapService: MapService,
+    private redisService: RedisService,
+  ) {}
 
   init() {
     const folders = fs.readdirSync('sessions');
@@ -233,14 +237,22 @@ export class BaileysService {
     return { groups };
   }
 
-  sendMessage(id: string, param: ParamSendMessage) {
+  async sendMessage(id: string, param: ParamSendMessage) {
     const session = sessions.find((session) => session.id == id);
     if (!session) {
       return { messageId: '' };
     }
 
     // ✅ Kirim langsung response ke client
-    const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; // generate sementara
+    const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const redisMessageId = `wa:msg:${messageId}`;
+
+    // Simpan status awal
+    await this.redisService.set(redisMessageId, {
+      status: 'pending',
+      jid: param.jid,
+      text: param.text,
+    });
 
     // 🔁 Lanjutkan typing & kirim pesan secara async
     setTimeout(async () => {
@@ -259,6 +271,13 @@ export class BaileysService {
         // TODO: simpan status berhasil
         // const send = await session.socket.sendMessage(param.jid, proto);
         // return { messageId: send?.key?.id || '' };
+
+        await this.redisService.set(redisMessageId, {
+          status: 'sent',
+          jid: param.jid,
+          text: param.text,
+          sentAt: new Date().toISOString(),
+        });
       } catch (err) {
         // TODO: handle error, retry, logging
         console.error('Gagal kirim WA:', err);

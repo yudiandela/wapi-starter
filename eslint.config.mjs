@@ -35,7 +35,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
       '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-      "no-async-promise-executor": "off"
+      "@typescript-eslint/no-unsafe-return": "off",
+      "no-async-promise-executor": "off",
     },
   },
 );
