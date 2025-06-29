@@ -26,8 +26,3 @@ export type ParamSendStatus = {
   image?: { url: string; caption: string };
   video?: { url: string; caption: string };
 };
-
-export type ParamTyping = {
-  jid: string;
-  text?: string;
-};

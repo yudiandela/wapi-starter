@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ParamTyping } from '../main/main.type';
+import { ParamTyping } from './typing.type';
 
 @Injectable()
 export class TypingService {
