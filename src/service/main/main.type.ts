@@ -13,7 +13,7 @@ export type ParamSendMessage = {
     latitude: number;
     longitude: number;
   };
-  simulate_typing?: boolean;
+  typing?: boolean;
 };
 
 export type ParamSendStatus = {

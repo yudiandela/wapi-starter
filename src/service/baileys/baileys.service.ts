@@ -246,7 +246,11 @@ export class BaileysService {
     setTimeout(async () => {
       try {
         // 🎯 Simulate typing
-        await TypingService.simulateTyping(session.socket, param);
+        await TypingService.simulateTyping(session.socket, param, {
+          enable: param.typing,
+          baseSpeed: 8,
+          simulateReadDelay: false,
+        });
 
         // ✅ Kirim pesan
         const proto = BaileysHelper.generateProtoSendMessage(param);
