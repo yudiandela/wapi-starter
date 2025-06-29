@@ -1,11 +1,18 @@
-import { v4 as uuidv4 } from 'uuid';
 import { Injectable } from '@nestjs/common';
 import { BaileysService } from '../baileys/baileys.service';
+import { RedisService } from '../redis/redis.service';
 import { ParamSendMessage, ParamSendStatus } from './main.type';
 
 @Injectable()
 export class MainService {
-  constructor(private baileysService: BaileysService) {}
+  constructor(
+    private baileysService: BaileysService,
+    private redisService: RedisService,
+  ) {}
+
+  get(id: string) {
+    return { qrcode: this.redisService.get(id) };
+  }
 
   getQr(id: string) {
     return { qrcode: this.baileysService.getQr(id) };
@@ -19,8 +26,7 @@ export class MainService {
     return this.baileysService.getGroup(id);
   }
 
-  async connect() {
-    const id = uuidv4();
+  async connect(id: string) {
     await this.baileysService.connect(id);
 
     return { id };

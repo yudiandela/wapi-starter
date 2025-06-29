@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
   Body,
   Controller,
@@ -27,16 +28,12 @@ import {
   ResponseSessionNotFound,
   ResponseGetStatusSuccess,
 } from './main.response';
-import { BodySendMessage, BodySendStatus } from './main.dto';
-import { RedisService } from '../service/redis/redis.service';
+import { BodySendMessage, BodySendStatus, BodyConnect } from './main.dto';
 
 @ApiTags('Main Controller')
 @Controller()
 export class MainController {
-  constructor(
-    private mainService: MainService,
-    private redisService: RedisService,
-  ) {}
+  constructor(private mainService: MainService) {}
 
   @Get('qr')
   @ApiHeader({ name: 'session-id' })
@@ -71,13 +68,14 @@ export class MainController {
   @ApiNotFoundResponse(ResponseSessionNotFound)
   @ApiOkResponse(ResponseGetStatusSuccess)
   getMessageStatus(@Param('id') id: string) {
-    return this.redisService.get(id);
+    return this.mainService.get(id);
   }
 
   @Post('connect')
   @ApiCreatedResponse(ResponseConnectSuccess)
-  connect() {
-    return this.mainService.connect();
+  connect(@Body() body: BodyConnect) {
+    const id = body?.id || uuidv4();
+    return this.mainService.connect(id);
   }
 
   @Post('disconnect')

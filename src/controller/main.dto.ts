@@ -107,6 +107,14 @@ export class BodySendMessage {
   location?: MessageLocation;
 }
 
+export class BodyConnect {
+  @ApiProperty({
+    type: String,
+    example: '73d643e4-721f-473a-b9ad-64ab7a51b407',
+  })
+  id: string;
+}
+
 enum StatusType {
   text = 'text',
   image = 'image',
