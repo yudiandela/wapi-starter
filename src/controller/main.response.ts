@@ -81,3 +81,13 @@ export const ResponseSendStatusSuccess: ApiResponseNoStatusOptions = {
   description:
     'Generate StatusID from WhatsApp as a sign that the status was successfully sent.',
 };
+
+export const ResponseGetStatusSuccess: ApiResponseNoStatusOptions = {
+  example: {
+    status: 'sent',
+    jid: '62895385278590@s.whatsapp.net',
+    text: 'Hello',
+    sentAt: '2025-06-29T14:16:33.046Z',
+  },
+  description: 'Returns the status of the message sent.',
+};

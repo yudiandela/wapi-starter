@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiHeader,
@@ -17,13 +25,18 @@ import {
   ResponseSendMessageSuccess,
   ResponseSendStatusSuccess,
   ResponseSessionNotFound,
+  ResponseGetStatusSuccess,
 } from './main.response';
 import { BodySendMessage, BodySendStatus } from './main.dto';
+import { RedisService } from '../service/redis/redis.service';
 
 @ApiTags('Main Controller')
 @Controller()
 export class MainController {
-  constructor(private mainService: MainService) {}
+  constructor(
+    private mainService: MainService,
+    private redisService: RedisService,
+  ) {}
 
   @Get('qr')
   @ApiHeader({ name: 'session-id' })
@@ -50,6 +63,15 @@ export class MainController {
   @ApiOkResponse(ResponseGroupSuccess)
   getGroup(@Req() { sessionId }: { sessionId: string }) {
     return this.mainService.getGroup(sessionId);
+  }
+
+  @Get('/message/:id/status')
+  @ApiHeader({ name: 'session-id' })
+  @UseGuards(MainGuard)
+  @ApiNotFoundResponse(ResponseSessionNotFound)
+  @ApiOkResponse(ResponseGetStatusSuccess)
+  getMessageStatus(@Param('id') id: string) {
+    return this.redisService.get(id);
   }
 
   @Post('connect')

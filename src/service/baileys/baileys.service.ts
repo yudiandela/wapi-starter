@@ -245,7 +245,7 @@ export class BaileysService {
 
     // ✅ Kirim langsung response ke client
     const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const redisMessageId = `wa:msg:${messageId}`;
+    const redisMessageId = `wapi:msg:${messageId}`;
 
     // Simpan status awal
     await this.redisService.set(redisMessageId, {
