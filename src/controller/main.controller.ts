@@ -19,6 +19,7 @@ import {
   ResponseSendStatusSuccess,
   ResponseSessionNotFound,
   ResponseGetStatusSuccess,
+  ResponseGetFallbackSuccess,
 } from './main.response';
 import { BodySendMessage, BodySendStatus, BodyConnect } from './main.dto';
 
@@ -67,7 +68,7 @@ export class MainController {
   @ApiHeader({ name: 'session-id' })
   @UseGuards(MainGuard)
   @ApiNotFoundResponse(ResponseSessionNotFound)
-  @ApiOkResponse(ResponseGetStatusSuccess)
+  @ApiOkResponse(ResponseGetFallbackSuccess)
   getFallbackMessage(@Req() { sessionId }: { sessionId: string }) {
     return this.mainService.getFallback(sessionId);
   }

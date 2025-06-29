@@ -13,14 +13,16 @@ export class FallbackService {
 
     const files = fs.readdirSync(fallbackDir);
 
-    return files.map((file) => {
-      const stats = fs.statSync(path.join(fallbackDir, file));
+    return {
+      fallbacks: files.map((file) => {
+        const stats = fs.statSync(path.join(fallbackDir, file));
 
-      return {
-        file,
-        sizeKb: Math.round(stats.size / 1024),
-        createdAt: stats.birthtime,
-      };
-    });
+        return {
+          file,
+          sizeKb: Math.round(stats.size / 1024),
+          createdAt: stats.birthtime,
+        };
+      }),
+    };
   }
 }

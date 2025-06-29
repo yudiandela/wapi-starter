@@ -91,3 +91,16 @@ export const ResponseGetStatusSuccess: ApiResponseNoStatusOptions = {
   },
   description: 'Returns the status of the message sent.',
 };
+
+export const ResponseGetFallbackSuccess: ApiResponseNoStatusOptions = {
+  example: {
+    fallbacks: [
+      {
+        file: 'wapi_msg_1751218511893-b3e1mb-1751218511894.json',
+        sizeKb: 0,
+        createdAt: '2025-06-29T17:35:11.895Z',
+      },
+    ],
+  },
+  description: 'Returns the fallback list of the message sent.',
+};
