@@ -3,4 +3,5 @@
 /stores
 /sessions
 /media
+.cache
 .env
