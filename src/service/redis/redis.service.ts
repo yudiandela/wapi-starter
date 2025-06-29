@@ -56,7 +56,7 @@ export class RedisService implements OnModuleInit {
     }
 
     try {
-      const data = await this.client.get(key);
+      const data = await this.client.get(`wapi:msg:${key}`);
       return data ? JSON.parse(data) : null;
     } catch (err) {
       this.logger.error(`❌ Redis get error for key ${key}`, err);
