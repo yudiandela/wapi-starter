@@ -15,6 +15,10 @@ async function bootstrap() {
     logger: ['warn', 'error'],
   });
 
+  if (!fs.existsSync('sessions')) {
+    fs.mkdirSync('sessions');
+  }
+
   if (!fs.existsSync('stores')) {
     fs.mkdirSync('stores');
   }
