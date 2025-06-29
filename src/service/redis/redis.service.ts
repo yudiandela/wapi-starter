@@ -9,42 +9,74 @@ export class RedisService implements OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
 
   async onModuleInit() {
-    this.client = new Redis(); // default localhost:6379
-
     try {
+      this.client = new Redis();
+
       const pong = await this.client.ping();
       if (pong === 'PONG') {
         this.isReady = true;
-        this.logger.log('✅ Redis connected successfully');
+        this.logger.log('✅ Redis connected');
       } else {
-        this.logger.error('❌ Redis ping failed');
+        this.logger.warn('⚠️ Redis ping failed. Continuing without Redis.');
       }
     } catch (err) {
-      this.logger.error('❌ Failed to connect to Redis', err);
+      this.logger.error(
+        '❌ Redis connection failed. App will continue without Redis.',
+        err,
+      );
     }
   }
 
-  private ensureConnected() {
-    if (!this.isReady) {
-      throw new Error('Redis is not connected');
-    }
+  isConnected(): boolean {
+    return this.isReady;
   }
 
   async set(key: string, value: any, ttlSeconds = 3600) {
-    this.ensureConnected();
-    const json = JSON.stringify(value);
-    await this.client.set(key, json, 'EX', ttlSeconds);
+    if (!this.isReady) {
+      this.logger.warn(
+        `Skipping Redis set for key ${key}: Redis not connected`,
+      );
+      return;
+    }
+
+    try {
+      const json = JSON.stringify(value);
+      await this.client.set(key, json, 'EX', ttlSeconds);
+    } catch (err) {
+      this.logger.error(`❌ Redis set error for key ${key}`, err);
+    }
   }
 
   async get<T = any>(key: string): Promise<T | null> {
-    this.ensureConnected();
-    const data = await this.client.get(`wapi:msg:${key}`);
-    return data ? JSON.parse(data) : null;
+    if (!this.isReady) {
+      this.logger.warn(
+        `Skipping Redis get for key ${key}: Redis not connected`,
+      );
+      return null;
+    }
+
+    try {
+      const data = await this.client.get(key);
+      return data ? JSON.parse(data) : null;
+    } catch (err) {
+      this.logger.error(`❌ Redis get error for key ${key}`, err);
+      return null;
+    }
   }
 
   async del(key: string) {
-    this.ensureConnected();
-    return this.client.del(key);
+    if (!this.isReady) {
+      this.logger.warn(
+        `Skipping Redis del for key ${key}: Redis not connected`,
+      );
+      return;
+    }
+
+    try {
+      await this.client.del(key);
+    } catch (err) {
+      this.logger.error(`❌ Redis del error for key ${key}`, err);
+    }
   }
 
   async ping(): Promise<boolean> {
@@ -54,9 +86,5 @@ export class RedisService implements OnModuleInit {
     } catch {
       return false;
     }
-  }
-
-  isConnected(): boolean {
-    return this.isReady;
   }
 }
