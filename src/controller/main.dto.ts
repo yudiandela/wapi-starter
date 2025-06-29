@@ -111,6 +111,7 @@ export class BodyConnect {
   @ApiProperty({
     type: String,
     example: '73d643e4-721f-473a-b9ad-64ab7a51b407',
+    required: false,
   })
   id: string;
 }
