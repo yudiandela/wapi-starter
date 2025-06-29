@@ -6,6 +6,7 @@ import { TypingService } from './service/message/typing.service';
 import { MapService } from './service/map/map.service';
 import { StorageService } from './service/storage/storage.service';
 import { RedisService } from './service/redis/redis.service';
+import { FallbackService } from './service/fallback/fallback.service';
 
 @Module({
   controllers: [MainController],
@@ -16,6 +17,7 @@ import { RedisService } from './service/redis/redis.service';
     MapService,
     StorageService,
     RedisService,
+    FallbackService,
   ],
 })
 export class AppModule {}

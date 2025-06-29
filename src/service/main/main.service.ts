@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaileysService } from '../baileys/baileys.service';
 import { RedisService } from '../redis/redis.service';
+import { FallbackService } from '../fallback/fallback.service';
 import { ParamSendMessage, ParamSendStatus } from './main.type';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class MainService {
   constructor(
     private baileysService: BaileysService,
     private redisService: RedisService,
+    private fallbackService: FallbackService,
   ) {}
 
   get(id: string) {
@@ -24,6 +26,10 @@ export class MainService {
 
   getGroup(id: string) {
     return this.baileysService.getGroup(id);
+  }
+
+  getFallback(id: string) {
+    return this.fallbackService.getFallback(id);
   }
 
   async connect(id: string) {

@@ -1,13 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiHeader,
@@ -62,13 +54,22 @@ export class MainController {
     return this.mainService.getGroup(sessionId);
   }
 
-  @Get('/message/:id/status')
+  @Get('message/:id/status')
   @ApiHeader({ name: 'session-id' })
   @UseGuards(MainGuard)
   @ApiNotFoundResponse(ResponseSessionNotFound)
   @ApiOkResponse(ResponseGetStatusSuccess)
-  getMessageStatus(@Param('id') id: string) {
-    return this.mainService.get(id);
+  getMessageStatus(@Req() { sessionId }: { sessionId: string }) {
+    return this.mainService.get(sessionId);
+  }
+
+  @Get('message/fallback')
+  @ApiHeader({ name: 'session-id' })
+  @UseGuards(MainGuard)
+  @ApiNotFoundResponse(ResponseSessionNotFound)
+  @ApiOkResponse(ResponseGetStatusSuccess)
+  getFallbackMessage(@Req() { sessionId }: { sessionId: string }) {
+    return this.mainService.getFallback(sessionId);
   }
 
   @Post('connect')
