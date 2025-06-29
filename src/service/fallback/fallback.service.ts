@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Fallback } from './fallback.type';
 
 @Injectable()
 export class FallbackService {
@@ -13,16 +14,18 @@ export class FallbackService {
 
     const files = fs.readdirSync(fallbackDir);
 
-    return {
-      fallbacks: files.map((file) => {
-        const stats = fs.statSync(path.join(fallbackDir, file));
+    const fallbacks: Fallback[] = [];
 
-        return {
-          file,
-          sizeKb: Math.round(stats.size / 1024),
-          createdAt: stats.birthtime,
-        };
-      }),
-    };
+    files.map((file) => {
+      const stats = fs.statSync(path.join(fallbackDir, file));
+
+      fallbacks.push({
+        file,
+        sizeKb: Math.round(stats.size / 1024),
+        createdAt: stats.birthtime.toISOString(),
+      });
+    });
+
+    return { fallbacks };
   }
 }
