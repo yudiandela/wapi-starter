@@ -16,6 +16,7 @@ import { StringHelper } from 'src/helper/string.helper';
 import { ParamSendMessage, ParamSendStatus } from '../main/main.type';
 import { BaileysHelper } from 'src/helper/baileys.helper';
 import { MapService } from '../map/map.service';
+import { TypingService } from '../message/typing.service';
 
 let sessions: Session[] = [];
 
@@ -232,16 +233,35 @@ export class BaileysService {
     return { groups };
   }
 
-  async sendMessage(id: string, param: ParamSendMessage) {
+  sendMessage(id: string, param: ParamSendMessage) {
     const session = sessions.find((session) => session.id == id);
     if (!session) {
       return { messageId: '' };
     }
 
-    const proto = BaileysHelper.generateProtoSendMessage(param);
-    const send = await session.socket.sendMessage(param.jid, proto);
+    // ✅ Kirim langsung response ke client
+    const messageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; // generate sementara
 
-    return { messageId: send?.key?.id || '' };
+    // 🔁 Lanjutkan typing & kirim pesan secara async
+    setTimeout(async () => {
+      try {
+        // 🎯 Simulate typing
+        await TypingService.simulateTyping(session.socket, param);
+
+        // ✅ Kirim pesan
+        const proto = BaileysHelper.generateProtoSendMessage(param);
+        await session.socket.sendMessage(param.jid, proto);
+
+        // TODO: simpan status berhasil
+        // const send = await session.socket.sendMessage(param.jid, proto);
+        // return { messageId: send?.key?.id || '' };
+      } catch (err) {
+        // TODO: handle error, retry, logging
+        console.error('Gagal kirim WA:', err);
+      }
+    }, 0);
+
+    return { messageId };
   }
 
   async sendStatus(id: string, param: ParamSendStatus) {

@@ -13,6 +13,7 @@ export type ParamSendMessage = {
     latitude: number;
     longitude: number;
   };
+  simulate_typing?: boolean;
 };
 
 export type ParamSendStatus = {
@@ -24,4 +25,9 @@ export type ParamSendStatus = {
   };
   image?: { url: string; caption: string };
   video?: { url: string; caption: string };
+};
+
+export type ParamTyping = {
+  jid: string;
+  text?: string;
 };
