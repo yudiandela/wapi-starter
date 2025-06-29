@@ -249,6 +249,7 @@ export class BaileysService {
 
     // Simpan status awal
     await this.redisService.set(redisMessageId, {
+      id: id,
       status: 'pending',
       jid: param.jid,
       text: param.text,
@@ -273,6 +274,7 @@ export class BaileysService {
         // return { messageId: send?.key?.id || '' };
 
         await this.redisService.set(redisMessageId, {
+          id: id,
           status: 'sent',
           jid: param.jid,
           text: param.text,

@@ -78,10 +78,13 @@ export class RedisService implements OnModuleInit {
   private saveToFile(key: string, value: any) {
     try {
       const filename = key.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const filepath = path.join(
-        this.fallbackDir,
-        `${filename}-${Date.now()}.json`,
-      );
+      const fallbackDir = `${this.fallbackDir}/${value.id}`;
+
+      if (!fs.existsSync(fallbackDir)) {
+        fs.mkdirSync(fallbackDir, { recursive: true });
+      }
+
+      const filepath = path.join(fallbackDir, `${filename}-${Date.now()}.json`);
       fs.writeFileSync(filepath, JSON.stringify(value, null, 2), 'utf-8');
       this.logger.warn(`📁 Data fallback saved to ${filepath}`);
     } catch (err) {
