@@ -28,6 +28,11 @@ import { BodySendMessage, BodySendStatus, BodyConnect } from './main.dto';
 export class MainController {
   constructor(private mainService: MainService) {}
 
+  @Get('/')
+  homePage() {
+    return 'Hello World!';
+  }
+
   @Get('qr')
   @ApiHeader({ name: 'session-id' })
   @UseGuards(MainGuard)
