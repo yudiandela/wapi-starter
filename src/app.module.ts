@@ -7,6 +7,7 @@ import { MapService } from './service/map/map.service';
 import { StorageService } from './service/storage/storage.service';
 import { RedisService } from './service/redis/redis.service';
 import { FallbackService } from './service/fallback/fallback.service';
+import { UploadCleanerService } from './service/upload-cleaner.service';
 
 @Module({
   controllers: [MainController],
@@ -18,6 +19,7 @@ import { FallbackService } from './service/fallback/fallback.service';
     StorageService,
     RedisService,
     FallbackService,
+    UploadCleanerService,
   ],
 })
 export class AppModule {}

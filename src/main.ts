@@ -12,7 +12,7 @@ import { BaileysService } from './service/baileys/baileys.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['warn', 'error'],
+    logger: ['log', 'warn', 'error', 'debug'],
   });
 
   if (!fs.existsSync('sessions')) {
