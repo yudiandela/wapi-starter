@@ -11,6 +11,7 @@ import { MainGuard } from './main.guard';
 import { MainService } from 'src/service/main/main.service';
 import { RedisService } from 'src/service/redis/redis.service';
 import {
+  ResponseCheckSuccess,
   ResponseConnectSuccess,
   ResponseContactSuccess,
   ResponseDisconnectSuccess,
@@ -33,10 +34,11 @@ export class MainController {
   ) {}
 
   @Get('/check')
+  @ApiOkResponse(ResponseCheckSuccess)
   async check() {
     const start = process.hrtime();
 
-    const redisStatus = this.redisService.isConnected();
+    const redisStatus = await this.redisService.ping();
     const diff = process.hrtime(start);
     const responseTimeMs = (diff[0] * 1000 + diff[1] / 1e6).toFixed(2);
 

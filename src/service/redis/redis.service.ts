@@ -17,8 +17,8 @@ export class RedisService implements OnModuleInit {
 
     try {
       this.client = new Redis();
-      const pong = await this.client.ping();
-      if (pong === 'PONG') {
+      const pong = await this.ping();
+      if (pong) {
         this.isReady = true;
         this.logger.log('✅ Redis connected');
       } else {
@@ -31,6 +31,16 @@ export class RedisService implements OnModuleInit {
 
   isConnected(): boolean {
     return this.isReady;
+  }
+
+  async ping(): Promise<boolean> {
+    const pong = await this.client.ping();
+    if (pong === 'PONG') {
+      this.isReady = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   async set(key: string, value: any, ttlSeconds = 3600) {

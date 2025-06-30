@@ -1,5 +1,14 @@
 import { ApiResponseNoStatusOptions } from '@nestjs/swagger';
 
+export const ResponseCheckSuccess: ApiResponseNoStatusOptions = {
+  example: {
+    message: 'Healthy!',
+    response_time: '0.02ms',
+    redis: 'connected',
+  },
+  description: 'Health check result',
+};
+
 export const ResponseSessionNotFound: ApiResponseNoStatusOptions = {
   example: {
     statusCode: 404,
