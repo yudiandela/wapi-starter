@@ -54,7 +54,7 @@ async function bootstrap() {
   app.useBodyParser('urlencoded', { limit: '10mb', extended: true });
   app.useGlobalPipes(new ValidationPipe());
   app.use((req: Request, response: Response, next: NextFunction) => {
-    console.log(new Date(), '', req.method, '', req.path, '', response);
+    console.log(new Date(), response.statusCode, req.method, req.path);
     next();
   });
 
@@ -62,8 +62,10 @@ async function bootstrap() {
   const wsPort = process.env.WS_PORT || 3001;
   await app.listen(port);
 
-  console.log(`🚀 Application Server running on http://localhost:${port}`);
-  console.log(`🔌 WebSocket Server running on ws://localhost:${wsPort}`);
+  console.log('----------------------------------------------------------');
+  console.log(`- 🚀 Application Server running on http://localhost:${port} -`);
+  console.log(`--- 🔌 WebSocket Server running on ws://localhost:${wsPort} ---`);
+  console.log('----------------------------------------------------------');
 }
 
 void bootstrap();
