@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket JavaScript Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .connection-status {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .status-disconnected {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 2px solid #ef5350;
+    }
+
+    .status-connected {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+      border: 2px solid #4caf50;
+    }
+
+    .status-connecting {
+      background-color: #fff3e0;
+      color: #ef6c00;
+      border: 2px solid #ff9800;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      min-width: 200px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .btn-connect {
+      background: linear-gradient(45deg, #4caf50, #45a049);
+      color: white;
+    }
+
+    .btn-disconnect {
+      background: linear-gradient(45deg, #f44336, #da190b);
+      color: white;
+    }
+
+    .btn-send {
+      background: linear-gradient(45deg, #2196f3, #0b7dda);
+      color: white;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .messages {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .message {
+      margin-bottom: 8px;
+      padding: 5px;
+      border-radius: 4px;
+    }
+
+    .message-sent {
+      background-color: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+
+    .message-received {
+      background-color: #f3e5f5;
+      border-left: 4px solid #9c27b0;
+    }
+
+    .message-system {
+      background-color: #fff3e0;
+      border-left: 4px solid #ff9800;
+      font-style: italic;
+    }
+
+    .url-input {
+      margin-bottom: 20px;
+    }
+
+    .url-input label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>📱 Bailey WhatsApp WebSocket Client</h1>
+
+    <div class="url-input">
+      <label for="wsUrl">Bailey WebSocket URL:</label>
+      <input type="text" id="wsUrl" value="ws://localhost:3000" placeholder="ws://localhost:3000">
+    </div>
+
+    <div id="status" class="connection-status status-disconnected">
+      ❌ Tidak Terhubung
+    </div>
+
+    <div class="controls">
+      <button id="connectBtn" class="btn-connect">🔗 Connect to Bailey</button>
+      <button id="disconnectBtn" class="btn-disconnect" disabled>🔌 Disconnect</button>
+      <input type="text" id="messageInput" placeholder="Kirim pesan WhatsApp..." disabled>
+      <button id="sendBtn" class="btn-send" disabled>📤 Send Message</button>
+    </div>
+
+    <div class="bailey-controls" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+      <input type="text" id="phoneNumber" placeholder="628123456789"
+        style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; min-width: 150px;" disabled>
+      <button id="getQRBtn"
+        style="padding: 12px 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, #25D366, #20b358); color: white; font-weight: bold;"
+        disabled>📱 Get QR Code</button>
+      <button id="getChatsBtn"
+        style="padding: 12px 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, #128C7E, #0f7a6b); color: white; font-weight: bold;"
+        disabled>💬 Get Chats</button>
+    </div>
+
+    <div id="messages" class="messages">
+      <div class="message message-system">
+        <strong>[SYSTEM]</strong> Masukkan URL Bailey WebSocket Server dan klik Connect. Default: ws://localhost:3000
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let socket = null;
+    let isConnected = false;
+
+    // Ambil elemen DOM
+    const statusDiv = document.getElementById('status');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const messagesDiv = document.getElementById('messages');
+    const urlInput = document.getElementById('wsUrl');
+    const phoneNumber = document.getElementById('phoneNumber');
+    const getQRBtn = document.getElementById('getQRBtn');
+    const getChatsBtn = document.getElementById('getChatsBtn');
+
+    // Fungsi untuk menambah pesan ke area chat
+    function addMessage(content, type = 'system') {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${type}`;
+
+      const timestamp = new Date().toLocaleTimeString();
+      let prefix = '';
+
+      switch (type) {
+        case 'sent':
+          prefix = '[SENT]';
+          break;
+        case 'received':
+          prefix = '[RECEIVED]';
+          break;
+        case 'system':
+          prefix = '[SYSTEM]';
+          break;
+      }
+
+      messageDiv.innerHTML = `<strong>${prefix}</strong> ${timestamp} - ${content}`;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Fungsi untuk update status koneksi
+    function updateStatus(status, message) {
+      statusDiv.className = `connection-status status-${status}`;
+      statusDiv.innerHTML = message;
+    }
+
+    // Fungsi untuk connect ke WebSocket
+    function connectWebSocket() {
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        addMessage('URL WebSocket tidak boleh kosong!', 'system');
+        return;
+      }
+
+      try {
+        updateStatus('connecting', '🔄 Menghubungkan...');
+        addMessage(`Mencoba menghubungkan ke: ${url}`, 'system');
+
+        socket = new WebSocket(url);
+
+        // Event ketika koneksi berhasil
+        socket.onopen = function (event) {
+          isConnected = true;
+          updateStatus('connected', '✅ Terhubung');
+          addMessage('Koneksi WebSocket berhasil dibuka!', 'system');
+
+          // Update UI untuk Bailey
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+          messageInput.disabled = false;
+          sendBtn.disabled = false;
+          urlInput.disabled = true;
+          phoneNumber.disabled = false;
+          getQRBtn.disabled = false;
+          getChatsBtn.disabled = false;
+        };
+
+        // Event ketika menerima pesan dari Bailey
+        socket.onmessage = function (event) {
+          try {
+            const data = JSON.parse(event.data);
+
+            // Handle berbagai jenis pesan dari Bailey
+            if (data.type === 'qr') {
+              addMessage(`QR Code received: ${data.qr}`, 'received');
+              // Anda bisa menampilkan QR code di UI
+            } else if (data.type === 'connection-update') {
+              addMessage(`Connection Status: ${data.connection}`, 'received');
+            } else if (data.type === 'message') {
+              addMessage(`WhatsApp Message: ${JSON.stringify(data.message, null, 2)}`, 'received');
+            } else if (data.type === 'chats') {
+              addMessage(`Chats received: ${data.chats.length} chats`, 'received');
+            } else {
+              addMessage(`Bailey Response: ${JSON.stringify(data, null, 2)}`, 'received');
+            }
+          } catch (error) {
+            // Jika bukan JSON, tampilkan sebagai text biasa
+            addMessage(event.data, 'received');
+          }
+        };
+
+        // Event ketika terjadi error
+        socket.onerror = function (error) {
+          addMessage('Terjadi error pada WebSocket!', 'system');
+          console.error('WebSocket error:', error);
+        };
+
+        // Event ketika koneksi ditutup
+        socket.onclose = function (event) {
+          isConnected = false;
+          updateStatus('disconnected', '❌ Tidak Terhubung');
+          addMessage(`Koneksi WebSocket ditutup. Code: ${event.code}, Reason: ${event.reason}`, 'system');
+
+          // Reset UI untuk Bailey
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          messageInput.disabled = true;
+          sendBtn.disabled = true;
+          urlInput.disabled = false;
+          phoneNumber.disabled = true;
+          getQRBtn.disabled = true;
+          getChatsBtn.disabled = true;
+        };
+
+      } catch (error) {
+        updateStatus('disconnected', '❌ Error Koneksi');
+        addMessage(`Error saat membuat koneksi: ${error.message}`, 'system');
+      }
+    }
+
+    // Fungsi untuk disconnect WebSocket
+    function disconnectWebSocket() {
+      if (socket && isConnected) {
+        socket.close();
+        addMessage('Memutuskan koneksi WebSocket...', 'system');
+      }
+    }
+
+    // Fungsi untuk mengirim pesan WhatsApp
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      const phone = phoneNumber.value.trim();
+
+      if (!message) {
+        addMessage('Pesan tidak boleh kosong!', 'system');
+        return;
+      }
+
+      if (!phone) {
+        addMessage('Nomor telepon tidak boleh kosong!', 'system');
+        return;
+      }
+
+      if (!isConnected || !socket) {
+        addMessage('Tidak terhubung ke Bailey WebSocket!', 'system');
+        return;
+      }
+
+      try {
+        const payload = {
+          type: 'send-message',
+          to: phone,
+          message: message
+        };
+
+        socket.send(JSON.stringify(payload));
+        addMessage(`Mengirim ke ${phone}: ${message}`, 'sent');
+        messageInput.value = '';
+      } catch (error) {
+        addMessage(`Error mengirim pesan: ${error.message}`, 'system');
+      }
+    }
+
+    // Fungsi untuk mendapatkan QR Code
+    function getQRCode() {
+      if (!isConnected || !socket) {
+        addMessage('Tidak terhubung ke Bailey WebSocket!', 'system');
+        return;
+      }
+
+      try {
+        const payload = {
+          type: 'get-qr'
+        };
+
+        socket.send(JSON.stringify(payload));
+        addMessage('Meminta QR Code...', 'sent');
+      } catch (error) {
+        addMessage(`Error mendapatkan QR: ${error.message}`, 'system');
+      }
+    }
+
+    // Fungsi untuk mendapatkan daftar chat
+    function getChats() {
+      if (!isConnected || !socket) {
+        addMessage('Tidak terhubung ke Bailey WebSocket!', 'system');
+        return;
+      }
+
+      try {
+        const payload = {
+          type: 'get-chats'
+        };
+
+        socket.send(JSON.stringify(payload));
+        addMessage('Mengambil daftar chat...', 'sent');
+      } catch (error) {
+        addMessage(`Error mendapatkan chats: ${error.message}`, 'system');
+      }
+    }
+
+    // Event listeners untuk Bailey
+    connectBtn.addEventListener('click', connectWebSocket);
+    disconnectBtn.addEventListener('click', disconnectWebSocket);
+    sendBtn.addEventListener('click', sendMessage);
+    getQRBtn.addEventListener('click', getQRCode);
+    getChatsBtn.addEventListener('click', getChats);
+
+    // Enter key untuk mengirim pesan
+    messageInput.addEventListener('keypress', function (event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Enter key untuk connect
+    urlInput.addEventListener('keypress', function (event) {
+      if (event.key === 'Enter' && !connectBtn.disabled) {
+        connectWebSocket();
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -31,7 +31,7 @@ async function bootstrap() {
 
   if (process.env.INIT_SWAGGER == 'true') {
     const config = new DocumentBuilder()
-      .setTitle('WAPI Starter')
+      .setTitle(process.env.APP_NAME || 'WAPI - Web API Starter')
       .setDescription(
         'WAPI is a WhatsApp API template that uses the @whiskeysockets/baileys package to be used as a Base API. This repository can be further developed by other developers for more customizable functions. The Base Repository currently uses NestJS for API and Swagger for Open API. Dont forget to visit http://github.com/azickri. Ciauuu ✨✨✨',
       )
@@ -55,7 +55,7 @@ async function bootstrap() {
     next();
   });
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.APP_PORT || 3000;
   await app.listen(port);
 
   console.log('Application Running at port', port);
