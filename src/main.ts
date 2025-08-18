@@ -9,25 +9,28 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { BaileysService } from './service/baileys/baileys.service';
+import { WebsocketService } from './service/websocket/websocket.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'warn', 'error', 'debug'],
   });
 
-  if (!fs.existsSync('sessions')) {
-    fs.mkdirSync('sessions');
-  }
+  // Create required directories
+  const requiredDirs = ['sessions', 'stores', 'media'];
+  requiredDirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+      console.log(`📁 Created directory: ${dir}`);
+    }
+  });
 
-  if (!fs.existsSync('stores')) {
-    fs.mkdirSync('stores');
-  }
+  // Initialize Bailey service with WebSocket support
+  const baileysService = app.get(BaileysService);
+  baileysService.init();
 
-  if (!fs.existsSync('media')) {
-    fs.mkdirSync('media');
-  }
-
-  app.get(BaileysService).init();
+  const websocketService = app.get(WebsocketService);
+  websocketService.init();
 
   if (process.env.INIT_SWAGGER == 'true') {
     const config = new DocumentBuilder()
@@ -51,14 +54,16 @@ async function bootstrap() {
   app.useBodyParser('urlencoded', { limit: '10mb', extended: true });
   app.useGlobalPipes(new ValidationPipe());
   app.use((req: Request, response: Response, next: NextFunction) => {
-    console.log(new Date(), '', req.method, '', req.path);
+    console.log(new Date(), '', req.method, '', req.path, '', response);
     next();
   });
 
   const port = process.env.APP_PORT || 3000;
+  const wsPort = process.env.WS_PORT || 3001;
   await app.listen(port);
 
-  console.log('Application Running at port', port);
+  console.log(`🚀 Application Server running on http://localhost:${port}`);
+  console.log(`🔌 WebSocket Server running on ws://localhost:${wsPort}`);
 }
 
 void bootstrap();

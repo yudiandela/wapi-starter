@@ -8,12 +8,14 @@ import { StorageService } from './service/storage/storage.service';
 import { RedisService } from './service/redis/redis.service';
 import { FallbackService } from './service/fallback/fallback.service';
 import { UploadCleanerService } from './service/upload-cleaner.service';
+import { WebsocketService } from './service/websocket/websocket.service';
 
 @Module({
   controllers: [MainController],
   providers: [
     MainService,
     BaileysService,
+    WebsocketService,
     TypingService,
     MapService,
     StorageService,
