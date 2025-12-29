@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -17,7 +18,7 @@ async function bootstrap() {
   });
 
   // Create required directories
-  const requiredDirs = ['sessions', 'stores', 'media'];
+  const requiredDirs = ['sessions', 'stores', 'media', 'data'];
   requiredDirs.forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
@@ -39,6 +40,8 @@ async function bootstrap() {
         'WAPI is a WhatsApp API template that uses the @whiskeysockets/baileys package to be used as a Base API. This repository can be further developed by other developers for more customizable functions. The Base Repository currently uses NestJS for API and Swagger for Open API. Dont forget to visit http://github.com/azickri. Ciauuu ✨✨✨',
       )
       .setVersion('1.0')
+      .addBearerAuth()
+      .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
       .build();
 
     const document = () => SwaggerModule.createDocument(app, config);
@@ -53,9 +56,28 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { limit: '10mb', extended: true });
   app.useGlobalPipes(new ValidationPipe());
+
+  // Logging middleware
   app.use((req: Request, response: Response, next: NextFunction) => {
     console.log(new Date(), response.statusCode, req.method, req.path);
     next();
+  });
+
+  // Serve static HTML files
+  const rootDir = process.cwd();
+
+  // Serve login page
+  app.use('/login.html', (req: Request, res: Response) => {
+    res.sendFile(path.join(rootDir, 'login.html'));
+  });
+
+  // Serve index page (dashboard)
+  app.use('/', (req: Request, res: Response, next: NextFunction) => {
+    // Skip API routes
+    if (req.path !== '/' && req.path !== '/index.html') {
+      return next();
+    }
+    res.sendFile(path.join(rootDir, 'index.html'));
   });
 
   const port = process.env.APP_PORT || 3000;
@@ -69,3 +91,4 @@ async function bootstrap() {
 }
 
 void bootstrap();
+

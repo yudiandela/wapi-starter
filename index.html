@@ -1,494 +1,530 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebSocket Monitor</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebSocket Monitor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: #2196f3;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .status {
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.connected {
+      background: #4caf50;
+    }
+
+    .status-indicator.disconnected {
+      background: #f44336;
+    }
+
+    .status-indicator.connecting {
+      background: #ff9800;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
       }
 
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #f5f5f5;
-        padding: 20px;
+      50% {
+        opacity: 0.5;
       }
 
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+      100% {
+        opacity: 1;
       }
+    }
 
-      .header {
-        background: #2196f3;
-        color: white;
-        padding: 20px;
-        text-align: center;
-      }
+    .controls {
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
 
-      .status {
-        padding: 15px 20px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-      }
+    .url-input {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
 
-      .status-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+    .url-input input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
 
-      .status-indicator {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-      }
+    .url-input button {
+      padding: 8px 15px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
 
-      .status-indicator.connected {
-        background: #4caf50;
-      }
+    .url-input button:hover {
+      background: #0d47a1;
+    }
 
-      .status-indicator.disconnected {
-        background: #f44336;
-      }
+    .log-container {
+      height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #fafafa;
+    }
 
-      .status-indicator.connecting {
-        background: #ff9800;
-      }
+    .log-entry {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      border-left: 4px solid;
+    }
 
-      @keyframes pulse {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
+    .log-entry.info {
+      background: rgba(33, 150, 243, 0.1);
+      border-left-color: #2196f3;
+    }
 
-      .controls {
-        padding: 15px 20px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-      }
+    .log-entry.success {
+      background: rgba(76, 175, 80, 0.1);
+      border-left-color: #4caf50;
+    }
 
-      .url-input {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
+    .log-entry.warning {
+      background: rgba(255, 152, 0, 0.1);
+      border-left-color: #ff9800;
+    }
 
-      .url-input input {
-        flex: 1;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-      }
+    .log-entry.error {
+      background: rgba(244, 67, 54, 0.1);
+      border-left-color: #f44336;
+    }
 
-      .url-input button {
-        padding: 8px 15px;
-        background: #2196f3;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
+    .timestamp {
+      color: #666;
+      font-size: 11px;
+      margin-right: 10px;
+    }
 
-      .url-input button:hover {
-        background: #0d47a1;
-      }
+    .clear-btn {
+      float: right;
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
 
-      .log-container {
-        height: 400px;
-        overflow-y: auto;
-        padding: 20px;
-        background: #fafafa;
-      }
+    .clear-btn:hover {
+      background: #d32f2f;
+    }
 
-      .log-entry {
-        margin-bottom: 10px;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-        border-left: 4px solid;
-      }
+    .qrCode {
+      padding: 5px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      text-align: center;
+      border-radius: 2px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: none;
+    }
+  </style>
+</head>
 
-      .log-entry.info {
-        background: rgba(33, 150, 243, 0.1);
-        border-left-color: #2196f3;
-      }
-
-      .log-entry.success {
-        background: rgba(76, 175, 80, 0.1);
-        border-left-color: #4caf50;
-      }
-
-      .log-entry.warning {
-        background: rgba(255, 152, 0, 0.1);
-        border-left-color: #ff9800;
-      }
-
-      .log-entry.error {
-        background: rgba(244, 67, 54, 0.1);
-        border-left-color: #f44336;
-      }
-
-      .timestamp {
-        color: #666;
-        font-size: 11px;
-        margin-right: 10px;
-      }
-
-      .clear-btn {
-        float: right;
-        background: #f44336;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-      }
-
-      .clear-btn:hover {
-        background: #d32f2f;
-      }
-
-      .qrCode {
-        padding: 5px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        text-align: center;
-        border-radius: 2px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>WebSocket Monitor</h1>
-        <p>Auto-connect dan monitoring ping</p>
-      </div>
-
-      <div class="qrCode">
-        <img src="" alt="" />
-      </div>
-
-      <div class="status">
-        <div class="status-item">
-          <div class="status-indicator disconnected" id="statusIndicator"></div>
-          <span id="statusText">Disconnected</span>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h1>WebSocket Monitor</h1>
+          <p>Auto-connect dan monitoring ping</p>
         </div>
-        <div class="status-item">
-          <span>Ping: <strong id="ping">-</strong></span>
-        </div>
-        <div class="status-item">
-          <span>Uptime: <strong id="uptime">00:00:00</strong></span>
+        <div id="userInfo" style="display: flex; align-items: center; gap: 15px;">
+          <span id="userName" style="font-size: 14px; opacity: 0.9;"></span>
+          <button id="logoutBtn"
+            style="padding: 8px 16px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 6px; cursor: pointer; font-size: 13px;">Logout</button>
         </div>
       </div>
-
-      <div class="controls">
-        <div class="url-input">
-          <input type="text" id="sessionId" placeholder="Session Id" value="" />
-
-          <input
-            type="text"
-            id="wsUrl"
-            placeholder="WebSocket URL"
-            value="ws://localhost:3001"
-          />
-          <button id="connectBtn">Connect</button>
-          <button class="clear-btn" id="clearLog">Clear Log</button>
-        </div>
-      </div>
-
-      <div class="log-container" id="logContainer"></div>
     </div>
 
-    <script>
-      let ws = null;
-      let connectTime = null;
-      let uptimeInterval = null;
-      let pingInterval = null;
-      let reconnectAttempts = 0;
-      let maxReconnectAttempts = 5;
-      let reconnectDelay = 5000;
+    <div class="qrCode">
+      <img src="" alt="" />
+    </div>
 
-      const elements = {
-        wsUrl: document.getElementById('wsUrl'),
-        sessionId: document.getElementById('sessionId'),
-        qrCode: document.querySelector('.qrCode'),
-        connectBtn: document.getElementById('connectBtn'),
-        statusIndicator: document.getElementById('statusIndicator'),
-        statusText: document.getElementById('statusText'),
-        logContainer: document.getElementById('logContainer'),
-        uptime: document.getElementById('uptime'),
-        ping: document.getElementById('ping'),
-        clearLog: document.getElementById('clearLog'),
-      };
+    <div class="status">
+      <div class="status-item">
+        <div class="status-indicator disconnected" id="statusIndicator"></div>
+        <span id="statusText">Disconnected</span>
+      </div>
+      <div class="status-item">
+        <span>Ping: <strong id="ping">-</strong></span>
+      </div>
+      <div class="status-item">
+        <span>Uptime: <strong id="uptime">00:00:00</strong></span>
+      </div>
+    </div>
 
-      function updateStatus(status, text) {
-        elements.statusIndicator.className = `status-indicator ${status}`;
-        elements.statusText.textContent = text;
+    <div class="controls">
+      <div class="url-input">
+        <input type="text" id="sessionId" placeholder="Session Id" value="" />
+
+        <input type="text" id="wsUrl" placeholder="WebSocket URL" value="ws://localhost:3001" />
+        <button id="connectBtn">Connect</button>
+        <button class="clear-btn" id="clearLog">Clear Log</button>
+      </div>
+    </div>
+
+    <div class="log-container" id="logContainer"></div>
+  </div>
+
+  <script>
+    // Auth check - redirect to login if not authenticated
+    const token = localStorage.getItem('wapi_token');
+    const apiKey = localStorage.getItem('wapi_api_key');
+    const userJson = localStorage.getItem('wapi_user');
+
+    if (!token || !apiKey) {
+      window.location.href = '/login.html';
+    }
+
+    // Display user info
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        document.getElementById('userName').textContent = `👤 ${user.name || user.username}`;
+      } catch (e) {
+        console.error('Error parsing user data:', e);
       }
+    }
 
-      function addLog(type, message) {
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry ${type}`;
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('wapi_token');
+      localStorage.removeItem('wapi_api_key');
+      localStorage.removeItem('wapi_user');
+      window.location.href = '/login.html';
+    });
 
-        const timestamp = new Date().toLocaleTimeString('id-ID');
-        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+    let ws = null;
+    let connectTime = null;
+    let uptimeInterval = null;
+    let pingInterval = null;
+    let reconnectAttempts = 0;
+    let maxReconnectAttempts = 5;
+    let reconnectDelay = 5000;
 
-        elements.logContainer.appendChild(logEntry);
-        elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
-      }
+    const elements = {
+      wsUrl: document.getElementById('wsUrl'),
+      sessionId: document.getElementById('sessionId'),
+      qrCode: document.querySelector('.qrCode'),
+      connectBtn: document.getElementById('connectBtn'),
+      statusIndicator: document.getElementById('statusIndicator'),
+      statusText: document.getElementById('statusText'),
+      logContainer: document.getElementById('logContainer'),
+      uptime: document.getElementById('uptime'),
+      ping: document.getElementById('ping'),
+      clearLog: document.getElementById('clearLog'),
+    };
 
-      function startUptime() {
-        connectTime = Date.now();
-        uptimeInterval = setInterval(() => {
-          if (connectTime) {
-            const uptime = Date.now() - connectTime;
-            const hours = Math.floor(uptime / 3600000);
-            const minutes = Math.floor((uptime % 3600000) / 60000);
-            const seconds = Math.floor((uptime % 60000) / 1000);
-            elements.uptime.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          }
-        }, 1000);
-      }
+    function updateStatus(status, text) {
+      elements.statusIndicator.className = `status-indicator ${status}`;
+      elements.statusText.textContent = text;
+    }
 
-      function startPing() {
-        pingInterval = setInterval(() => {
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            const start = Date.now();
-            const pingMessage = JSON.stringify({
-              type: 'ping',
-              timestamp: start,
-            });
+    function addLog(type, message) {
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-entry ${type}`;
 
-            try {
-              ws.send(pingMessage);
-              addLog('info', `PING dikirim: ${pingMessage}`);
-            } catch (error) {
-              addLog('error', `Error mengirim ping: ${error.message}`);
-            }
-          }
-        }, 3000);
-      }
+      const timestamp = new Date().toLocaleTimeString('id-ID');
+      logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
 
-      function showQR(data) {
-        elements.qrCode.style.display = 'block';
-        elements.qrCode.firstElementChild.src = data;
-      }
+      elements.logContainer.appendChild(logEntry);
+      elements.logContainer.scrollTop = elements.logContainer.scrollHeight;
+    }
 
-      async function createSession() {
+    function startUptime() {
+      connectTime = Date.now();
+      uptimeInterval = setInterval(() => {
+        if (connectTime) {
+          const uptime = Date.now() - connectTime;
+          const hours = Math.floor(uptime / 3600000);
+          const minutes = Math.floor((uptime % 3600000) / 60000);
+          const seconds = Math.floor((uptime % 60000) / 1000);
+          elements.uptime.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+      }, 1000);
+    }
+
+    function startPing() {
+      pingInterval = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
           const start = Date.now();
-          const message = JSON.stringify({
-            type: 'connect',
+          const pingMessage = JSON.stringify({
+            type: 'ping',
             timestamp: start,
-            sessionId: elements.sessionId.value,
           });
 
           try {
-            ws.send(message);
+            ws.send(pingMessage);
+            addLog('info', `PING dikirim: ${pingMessage}`);
           } catch (error) {
-            addLog('error', `Error mengirim getQR: ${error.message}`);
+            addLog('error', `Error mengirim ping: ${error.message}`);
           }
         }
-      }
+      }, 3000);
+    }
 
-      function getQR() {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          const start = Date.now();
-          const message = JSON.stringify({
-            type: 'get-qr',
-            timestamp: start,
-            sessionId: elements.sessionId.value,
-          });
+    function showQR(data) {
+      elements.qrCode.style.display = 'block';
+      elements.qrCode.firstElementChild.src = data;
+    }
 
-          try {
-            ws.send(message);
-          } catch (error) {
-            addLog('error', `Error mengirim getQR: ${error.message}`);
-          }
-        }
-      }
-
-      function connect() {
-        const url = elements.wsUrl.value.trim();
-        if (!url) {
-          addLog('error', 'URL WebSocket tidak boleh kosong');
-          return;
-        }
-
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          addLog('warning', 'Sudah terkoneksi. Menutup koneksi lama...');
-          ws.close();
-          return;
-        }
+    async function createSession() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const start = Date.now();
+        const message = JSON.stringify({
+          type: 'connect',
+          timestamp: start,
+          sessionId: elements.sessionId.value,
+        });
 
         try {
-          addLog('info', `Mencoba koneksi ke: ${url}`);
-          updateStatus('connecting', 'Connecting...');
-
-          ws = new WebSocket(url);
-
-          // Event: Connection opened
-          ws.addEventListener('open', async function (event) {
-            addLog('success', `✓ Koneksi berhasil ke ${ws.url}`);
-            addLog(
-              'info',
-              `Protocol: ${ws.protocol || 'none'}, Extensions: ${ws.extensions || 'none'}`,
-            );
-            updateStatus('connected', 'Connected');
-            elements.connectBtn.textContent = 'Disconnect';
-            reconnectAttempts = 0;
-            startUptime();
-            startPing();
-            await createSession();
-            // getQR();
-          });
-
-          // Event: Message received
-          ws.addEventListener('message', function (event) {
-            const data = JSON.parse(event.data);
-            addLog(
-              'info',
-              `📨 Pesan diterima: ${event.data} (${new Blob([event.data]).size} bytes)`,
-            );
-
-            // Check if it's ping response
-            if (data.type === 'ping') {
-              const timestamp = data.timestamp;
-              const latency = Date.now() - timestamp;
-              elements.ping.textContent = `${latency}ms`;
-              addLog('success', `🏓 PONG diterima, latency: ${latency}ms`);
-            }
-
-            if (data.type === 'get-qr') {
-              showQR(data.data);
-            }
-          });
-
-          // Event: Connection closed
-          ws.addEventListener('close', function (event) {
-            addLog(
-              'warning',
-              `❌ Koneksi ditutup. Code: ${event.code}, Reason: "${event.reason || 'No reason'}", wasClean: ${event.wasClean}`,
-            );
-            updateStatus('disconnected', 'Disconnected');
-            elements.connectBtn.textContent = 'Connect';
-            elements.ping.textContent = '-';
-
-            if (uptimeInterval) {
-              clearInterval(uptimeInterval);
-              uptimeInterval = null;
-            }
-            if (pingInterval) {
-              clearInterval(pingInterval);
-              pingInterval = null;
-            }
-
-            // Auto reconnect
-            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
-              reconnectAttempts++;
-              addLog(
-                'info',
-                `🔄 Auto reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} dalam ${reconnectDelay / 1000} detik...`,
-              );
-              setTimeout(() => {
-                connect();
-              }, reconnectDelay);
-            } else if (reconnectAttempts >= maxReconnectAttempts) {
-              addLog(
-                'error',
-                '❌ Max reconnect attempts reached. Manual reconnect required.',
-              );
-            }
-          });
-
-          // Event: Error occurred
-          ws.addEventListener('error', function (error) {
-            addLog(
-              'error',
-              `💥 WebSocket Error: ${error.message || 'Unknown error'}`,
-            );
-            addLog(
-              'error',
-              `Error type: ${error.type || 'unknown'}, target readyState: ${error.target?.readyState || 'unknown'}`,
-            );
-          });
+          ws.send(message);
         } catch (error) {
+          addLog('error', `Error mengirim getQR: ${error.message}`);
+        }
+      }
+    }
+
+    function getQR() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const start = Date.now();
+        const message = JSON.stringify({
+          type: 'get-qr',
+          timestamp: start,
+          sessionId: elements.sessionId.value,
+        });
+
+        try {
+          ws.send(message);
+        } catch (error) {
+          addLog('error', `Error mengirim getQR: ${error.message}`);
+        }
+      }
+    }
+
+    function connect() {
+      const url = elements.wsUrl.value.trim();
+      if (!url) {
+        addLog('error', 'URL WebSocket tidak boleh kosong');
+        return;
+      }
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        addLog('warning', 'Sudah terkoneksi. Menutup koneksi lama...');
+        ws.close();
+        return;
+      }
+
+      try {
+        addLog('info', `Mencoba koneksi ke: ${url}`);
+        updateStatus('connecting', 'Connecting...');
+
+        ws = new WebSocket(url);
+
+        // Event: Connection opened
+        ws.addEventListener('open', async function (event) {
+          addLog('success', `✓ Koneksi berhasil ke ${ws.url}`);
+          addLog(
+            'info',
+            `Protocol: ${ws.protocol || 'none'}, Extensions: ${ws.extensions || 'none'}`,
+          );
+          updateStatus('connected', 'Connected');
+          elements.connectBtn.textContent = 'Disconnect';
+          reconnectAttempts = 0;
+          startUptime();
+          startPing();
+          await createSession();
+          // getQR();
+        });
+
+        // Event: Message received
+        ws.addEventListener('message', function (event) {
+          const data = JSON.parse(event.data);
+          addLog(
+            'info',
+            `📨 Pesan diterima: ${event.data} (${new Blob([event.data]).size} bytes)`,
+          );
+
+          // Check if it's ping response
+          if (data.type === 'ping') {
+            const timestamp = data.timestamp;
+            const latency = Date.now() - timestamp;
+            elements.ping.textContent = `${latency}ms`;
+            addLog('success', `🏓 PONG diterima, latency: ${latency}ms`);
+          }
+
+          if (data.type === 'get-qr') {
+            showQR(data.data);
+          }
+        });
+
+        // Event: Connection closed
+        ws.addEventListener('close', function (event) {
+          addLog(
+            'warning',
+            `❌ Koneksi ditutup. Code: ${event.code}, Reason: "${event.reason || 'No reason'}", wasClean: ${event.wasClean}`,
+          );
+          updateStatus('disconnected', 'Disconnected');
+          elements.connectBtn.textContent = 'Connect';
+          elements.ping.textContent = '-';
+
+          if (uptimeInterval) {
+            clearInterval(uptimeInterval);
+            uptimeInterval = null;
+          }
+          if (pingInterval) {
+            clearInterval(pingInterval);
+            pingInterval = null;
+          }
+
+          // Auto reconnect
+          if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            addLog(
+              'info',
+              `🔄 Auto reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} dalam ${reconnectDelay / 1000} detik...`,
+            );
+            setTimeout(() => {
+              connect();
+            }, reconnectDelay);
+          } else if (reconnectAttempts >= maxReconnectAttempts) {
+            addLog(
+              'error',
+              '❌ Max reconnect attempts reached. Manual reconnect required.',
+            );
+          }
+        });
+
+        // Event: Error occurred
+        ws.addEventListener('error', function (error) {
           addLog(
             'error',
-            `💥 Exception saat membuat koneksi: ${error.message}`,
+            `💥 WebSocket Error: ${error.message || 'Unknown error'}`,
           );
-          updateStatus('disconnected', 'Error');
-        }
+          addLog(
+            'error',
+            `Error type: ${error.type || 'unknown'}, target readyState: ${error.target?.readyState || 'unknown'}`,
+          );
+        });
+      } catch (error) {
+        addLog(
+          'error',
+          `💥 Exception saat membuat koneksi: ${error.message}`,
+        );
+        updateStatus('disconnected', 'Error');
       }
+    }
 
-      function disconnect() {
-        if (ws) {
-          addLog('info', '🔌 Manual disconnect...');
-          reconnectAttempts = maxReconnectAttempts; // Prevent auto reconnect
-          ws.close(1000, 'Manual disconnect');
-        }
+    function disconnect() {
+      if (ws) {
+        addLog('info', '🔌 Manual disconnect...');
+        reconnectAttempts = maxReconnectAttempts; // Prevent auto reconnect
+        ws.close(1000, 'Manual disconnect');
       }
+    }
 
-      function clearLog() {
-        elements.logContainer.innerHTML = '';
-        addLog('info', '🗑️ Log dibersihkan');
+    function clearLog() {
+      elements.logContainer.innerHTML = '';
+      addLog('info', '🗑️ Log dibersihkan');
+    }
+
+    function toggleConnection() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        disconnect();
+      } else {
+        connect();
       }
+    }
 
-      function toggleConnection() {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          disconnect();
-        } else {
-          connect();
-        }
+    // Event listeners
+    elements.connectBtn.addEventListener('click', toggleConnection);
+    elements.clearLog.addEventListener('click', clearLog);
+
+    // Auto connect on page load
+    window.addEventListener('load', function () {
+      addLog('info', '🚀 WebSocket Monitor dimulai');
+      addLog('info', '⏱️ Auto connecting...');
+      setTimeout(() => {
+        connect();
+      }, 1000);
+    });
+
+    // Handle page unload
+    window.addEventListener('beforeunload', function () {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close(1000, 'Page unload');
       }
+    });
+  </script>
+</body>
 
-      // Event listeners
-      elements.connectBtn.addEventListener('click', toggleConnection);
-      elements.clearLog.addEventListener('click', clearLog);
-
-      // Auto connect on page load
-      window.addEventListener('load', function () {
-        addLog('info', '🚀 WebSocket Monitor dimulai');
-        addLog('info', '⏱️ Auto connecting...');
-        setTimeout(() => {
-          connect();
-        }, 1000);
-      });
-
-      // Handle page unload
-      window.addEventListener('beforeunload', function () {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.close(1000, 'Page unload');
-        }
-      });
-    </script>
-  </body>
 </html>
